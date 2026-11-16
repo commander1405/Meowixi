@@ -97,12 +97,15 @@ def _button_url(btn) -> Optional[str]:
     return None
 
 
+
 def with_promo(components=None, *, skip_ad: bool = False):
-    """Attach ad URL button under bot messages when enabled.
-    Reply/Menu keyboards pass through unchanged (cannot mix with inline).
+    """همیشه دکمه تبلیغ فعال را زیر پیام اینلاین بچسبان.
+    MenuKeyboard جداست و با اینلاین قاطی نمی‌شود؛ در آن حالت همان MenuKeyboard برمی‌گردد
+    و تبلیغ روی پیام‌های بدون MenuKeyboard (مثل میو) قطعی می‌آید.
     """
     if components is not None and type(components).__name__ in ("MenuKeyboardMarkup", "ReplyKeyboardMarkup"):
         return components
+
     markup = InlineKeyboardMarkup()
     max_row = 0
     existing_urls = set()
@@ -119,7 +122,7 @@ def with_promo(components=None, *, skip_ad: bool = False):
             pass
 
     if skip_ad:
-        return markup
+        return markup if max_row > 0 else components
 
     next_row = max_row + 1
     ad = channel_button()
@@ -130,16 +133,22 @@ def with_promo(components=None, *, skip_ad: bool = False):
                 markup.add(ad, row=next_row)
                 next_row += 1
                 existing_urls.add(u)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("add ad btn: %s", e)
 
+    # استدیو اختیاری
     if _promo_snapshot.get("studio_on", True):
         if STUDIO_BUTTON_URL not in existing_urls:
             try:
                 markup.add(studio_button(), row=next_row)
             except Exception:
                 pass
+
+    # اگر هیچ دکمه‌ای نبود و تبلیغ هم نبود
+    if not getattr(markup, "keyboards", None):
+        return components
     return markup
+
 
 
 def with_studio(components=None):

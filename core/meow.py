@@ -9,6 +9,17 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from config import MEOW_COOLDOWN
+
+
+async def _meow_cooldown_sec() -> float:
+    try:
+        from database.settings import get_setting
+        raw = await get_setting("meow_cooldown_sec", None)
+        if raw is not None and str(raw).strip() != "":
+            return float(max(0, int(str(raw).strip())))
+    except Exception:
+        pass
+    return float(MEOW_COOLDOWN)
 from database.users import (
     create_user, get_user, update_user, increment_daily_meow,
     add_meow_points, set_last_meow, get_last_meow, get_meow_points,
@@ -90,7 +101,7 @@ async def register_meow(user_id: int, first_name: str = "", username: str = "", 
 
     from database.users import try_claim_meow_atomic
     ok, total, remaining, coins_bal = await try_claim_meow_atomic(
-        int(user_id), now, float(MEOW_COOLDOWN), int(points), int(coins)
+        int(user_id), now, float(await _meow_cooldown_sec()), int(points), int(coins)
     )
     if not ok:
         msgs = [

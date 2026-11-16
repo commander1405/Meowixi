@@ -64,6 +64,7 @@ def nav():
     return _kb([
         [("📊 وضعیت", "owner:status"), ("👥 مدیریت", "owner:mgmt")],
         [("🎁 اقتصاد", "owner:economy"), ("⚙️ تنظیمات", "owner:settings_hub")],
+        [("🎃 رویداد", "owner:halloween")],
         [("🔙 بستن", "owner:close")],
     ])
 
@@ -79,17 +80,20 @@ def mgmt_kb():
 
 def settings_hub_kb():
     return _kb([
-        [("📢 دکمه تبلیغ", "owner:ads"), ("📨 پیام همگانی", "owner:broadcast")],
+        [("📢 دکمه تبلیغ", "owner:ads"), ("⏱ کول‌داون میو", "owner:meow_cd")],
         [("📅 فصول", "owner:seasons"), ("💡 راهنماها", "owner:guides")],
         [("💾 بکاپ", "owner:backup"), ("🌍 گروه جهانی", "owner:global_group")],
         [("🔙 منوی Owner", "owner:home")],
     ])
 
 
+async def halloween_owner_kb():
     on = event_active()
+    toggle = ("🎃 خاموش‌کردن هالووین", "owner:hw_off_ask") if on else ("👻 فعال‌کردن هالووین", "owner:hw_on")
     return _kb([
         [toggle],
-        [("✨ مدیریت باس", "owner:boss_menu")],
+        [("👻 مدیریت باس", "owner:boss_menu")],
+        [("ℹ️ وضعیت", "owner:halloween")],
         [("🔙 منوی Owner", "owner:home")],
     ])
 
@@ -99,6 +103,7 @@ def boss_menu_kb():
         [("🌍 فرستادن باس فایت به همه گروه‌ها", "owner:boss_all_ask")],
         [("🔍 باس برای یک گروه", "owner:boss_find")],
         [("🛑 لغو همه باس فایت‌ها", "owner:boss_cancel_all_ask")],
+        [("🔙 رویداد", "owner:halloween")],
     ])
 
 
@@ -116,8 +121,10 @@ def boss_all_confirm_kb():
     ])
 
 
+def halloween_confirm_off_kb():
     return _kb([
         [("🔴 بله، غیرفعال کن", "owner:hw_off_yes")],
+        [("🔙 انصراف", "owner:halloween")],
     ])
 
 
@@ -222,6 +229,7 @@ async def handle_owner_callback(bot, callback, data: str):
     msg = callback.message
     user_id = int(callback.from_user.id) if callback.from_user else 0
 
+    # --- compact hubs + Halloween toggle (owner-only; caller already checks) ---
     if action in ("home", ""):
         try:
             hw = event_status_text()
@@ -240,156 +248,57 @@ async def handle_owner_callback(bot, callback, data: str):
     if action == "settings_hub":
         await _edit(msg, "⚙️ **تنظیمات**\nفصل، راهنما، همگانی، بکاپ.", settings_hub_kb())
         return
+    if action == "halloween":
         try:
             st = event_status_text()
         except Exception:
             st = "—"
+        kb = await halloween_owner_kb()
+        await _edit(msg, f"🎃 **رویداد هالووین**\n{st}\nداده کاربران پاک نمی‌شود.", kb)
         return
-    if action == "hw_off_ask":
+    
+    
+    
+    
+    
+    
+    
+    if action == "meow_cd":
+        from database.settings import get_setting
+        from config import MEOW_COOLDOWN as _DEF_CD
+        raw = await get_setting("meow_cooldown_sec", str(_DEF_CD))
+        try:
+            cur = int(raw)
+        except Exception:
+            cur = int(_DEF_CD)
+        mins = max(0, cur // 60)
+        secs = cur % 60
         await _edit(
             msg,
-            "پیشرفت و آیتم‌های قبلی حفظ می‌شوند.",
-        )
-        return
-    if action == "hw_off_yes":
-        await set_event_enabled(False)
-        return
-    if action == "hw_on":
-        await set_event_enabled(True)
-        return
-
-    if action == "boss_menu":
-        if not event_active():
-            return
-        return
-
-    if action == "boss_find":
-        if not event_active():
-            return
-        _pending[user_id] = {"action": "boss_group_find"}
-        await _edit(msg, "🔍 آیدی یا بخشی از نام گروه را بفرست:", back_nav())
-        return
-
-    if action.startswith("boss_one_ask:"):
-        if not event_active():
-            return
-        cid = action.split(":", 1)[1]
-        g = await get_group(cid)
-        title = (g or {}).get("title") or cid
-        await _edit(
-            msg,
-            f"🐱 **فرستادن باس فایت**\nگروه: **{title}**\n`{cid}`\nتأیید می‌کنی؟",
+            f"⏱ **کول‌داون میو**\nفعلی: `{cur}` ثانیه ({mins}م و {secs}ث)\nیکی را انتخاب کن یا عدد ثانیه را بفرست.",
             _kb([
-                [("🐱 بله، بفرست", f"owner:boss_one_yes:{cid}")],
-                [("🔙 انصراف", "owner:boss_menu")],
+                [("60ث (۱د)", "owner:meow_cd_set:60"), ("180ث (۳د)", "owner:meow_cd_set:180")],
+                [("300ث (۵د)", "owner:meow_cd_set:300"), ("600ث (۱۰د)", "owner:meow_cd_set:600")],
+                [("900ث (۱۵د)", "owner:meow_cd_set:900"), ("0 = خاموش", "owner:meow_cd_set:0")],
+                [("✏️ عدد دلخواه", "owner:meow_cd_custom")],
+                [("🔙 تنظیمات", "owner:settings_hub")],
             ]),
         )
         return
 
-    if action.startswith("boss_one_yes:"):
-        if not event_active():
-            return
-        cid = action.split(":", 1)[1]
-        active = await fetchval(
-            str(cid),
-        )
-        if active:
-            await _edit(msg, f"⚠️ این گروه همین حالا باس فعال دارد.\n`{cid}`", boss_menu_kb())
-            return
-        if ok:
-            await _edit(msg, f"✅ باس فایت به گروه `{cid}` ارسال شد.", boss_menu_kb())
-        else:
-            await _edit(msg, f"❌ ارسال نشد (ربات در گروه نیست یا خطای API).\n`{cid}`", boss_menu_kb())
+    if action.startswith("meow_cd_set:"):
+        from database.settings import set_setting
+        sec = int(action.split(":")[-1])
+        sec = max(0, min(sec, 24 * 3600))
+        await set_setting("meow_cooldown_sec", str(sec))
+        await _edit(msg, f"✅ کول‌داون میو روی `{sec}` ثانیه تنظیم شد.", settings_hub_kb())
         return
 
-    if action == "boss_all_ask":
-        if not event_active():
-            return
-        groups = await get_all_groups()
-        n = len(groups or [])
-        await _edit(
-            msg,
-            f"🌍 **باس فایت برای همه گروه‌ها**\n"
-            f"تعداد گروه ثبت‌شده: `{n}`\n"
-            f"گروه‌هایی که باس فعال دارند رد می‌شوند.\n"
-            f"ممکن است چند دقیقه طول بکشد.",
-            boss_all_confirm_kb(),
-        )
+    if action == "meow_cd_custom":
+        _pending[user_id] = {"action": "meow_cd_custom"}
+        await _edit(msg, "عدد ثانیه کول‌داون میو را بفرست (مثلاً 120):", back_nav())
         return
 
-    if action == "boss_all_yes":
-        if not event_active():
-            return
-        await _edit(msg, "⏳ در حال ارسال باس به گروه‌ها…", boss_menu_kb())
-        groups = await get_all_groups()
-        import asyncio as _aio
-        sent = skipped = failed = 0
-        for g in groups or []:
-            if not event_active():
-                break
-            cid = str(g.get("chat_id") or "")
-            if not cid:
-                continue
-            try:
-                active = await fetchval(
-                    cid,
-                )
-                if active:
-                    skipped += 1
-                    continue
-                if ok:
-                    sent += 1
-                else:
-                    failed += 1
-            except Exception:
-                failed += 1
-            await _aio.sleep(0.4)
-        try:
-            await bot.send_message(
-                user_id,
-                f"✅ **گزارش باس همگانی**\nموفق: `{sent}`\nرد (فعال): `{skipped}`\nناموفق: `{failed}`",
-            )
-        except Exception:
-            pass
-        return
-
-    if action == "boss_cancel_all_ask":
-        active_n = int(await fetchval(
-        ) or 0)
-        await _edit(
-            msg,
-            f"🛑 **لغو همه باس فایت‌ها**\n"
-            f"تعداد باس فعال: `{active_n}`\n\n"
-            f"با تأیید، همه باس‌های فعال در همه گروه‌ها باطل می‌شوند\n"
-            f"و پیام‌شان ویرایش می‌شود.\n"
-            f"این کار برگشت‌ناپذیر است.",
-            boss_cancel_all_confirm_kb(),
-        )
-        return
-
-    if action == "boss_cancel_all_yes":
-        await _edit(msg, "⏳ در حال لغو همه باس‌ها…", boss_menu_kb())
-        try:
-            report = await cancel_all_active_bosses(bot, reason="owner")
-        except Exception as e:
-            await _edit(msg, f"❌ خطا در لغو: `{e}`", boss_menu_kb())
-            return
-        try:
-            await log_action(
-                user_id, "boss_cancel_all", result="ok",
-                details={"cancelled": report.get("cancelled"), "total": report.get("total")},
-            )
-        except Exception:
-            pass
-        await _edit(
-            msg,
-            f"✅ **همه باس‌ها لغو شد**\n"
-            f"باطل‌شده: `{report.get('cancelled', 0)}` / `{report.get('total', 0)}`",
-            boss_menu_kb(),
-        )
-        return
-
-    # --- Ads (MEGA-style single promo button) ---
 
     if action == "ads" or action.startswith("ad:"):
         from admin.ads_mgmt import (
@@ -1182,9 +1091,9 @@ async def handle_owner_text(bot, message, user_id: int, text: str) -> bool:
                 title = g.get("title") or cid
                 _pending.pop(user_id, None)
                 await message.reply(
-                    f"🐱 گروه انتخاب شد: **{title}**\n`{cid}`\nفرستادن باس؟",
+                    f"🎃 گروه انتخاب شد: **{title}**\n`{cid}`\nفرستادن باس؟",
                     components=_kb([
-                        [("🐱 فرستادن باس فایت", f"owner:boss_one_ask:{cid}")],
+                        [("🎃 فرستادن باس فایت", f"owner:boss_one_ask:{cid}")],
                         [("🔙 مدیریت باس", "owner:boss_menu")],
                     ]),
                 )
@@ -1195,7 +1104,7 @@ async def handle_owner_text(bot, message, user_id: int, text: str) -> bool:
                 cid = str(g.get("chat_id"))
                 title = (g.get("title") or cid)[:28]
                 lines.append(f"• {title} — `{cid}`")
-                rows.append([(f"🐱 {title}", f"owner:boss_one_ask:{cid}")])
+                rows.append([(f"🎃 {title}", f"owner:boss_one_ask:{cid}")])
             rows.append([("🔙 مدیریت باس", "owner:boss_menu")])
             _pending.pop(user_id, None)
             await message.reply("\n".join(lines), components=_kb(rows))

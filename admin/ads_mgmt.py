@@ -56,16 +56,32 @@ async def get_ad_config() -> tuple[bool, str, str]:
 async def set_ad_enabled(on: bool) -> None:
     await set_setting("ad_enabled", "1" if on else "0")
     invalidate_ad_cache()
+    try:
+        from utils.ui_helpers import update_promo_snapshot
+        enabled, url, title = await get_ad_config()
+        update_promo_snapshot(enabled, url, title)
+    except Exception:
+        pass
 
 
 async def set_ad_url(url: str) -> None:
     await set_setting("ad_url", (url or "").strip())
     invalidate_ad_cache()
+    try:
+        from utils.ui_helpers import update_promo_snapshot, refresh_promo_from_db
+        await refresh_promo_from_db()
+    except Exception:
+        pass
 
 
 async def set_ad_title(title: str) -> None:
     await set_setting("ad_title", (title or "").strip()[:64])
     invalidate_ad_cache()
+    try:
+        from utils.ui_helpers import refresh_promo_from_db
+        await refresh_promo_from_db()
+    except Exception:
+        pass
 
 
 def normalize_bale_url(text: str) -> str | None:
