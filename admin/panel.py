@@ -1063,6 +1063,19 @@ async def handle_owner_text(bot, message, user_id: int, text: str) -> bool:
         return False
 
     action = pending.get("action")
+
+    if action == "meow_cd_custom":
+        from database.settings import set_setting
+        try:
+            sec = int(str(text).strip().replace(",", "").replace("ثانیه", "").strip())
+            sec = max(0, min(sec, 24 * 3600))
+        except Exception:
+            await message.reply("❌ یک عدد معتبر بفرست (ثانیه).")
+            return True
+        await set_setting("meow_cooldown_sec", str(sec))
+        _pending.pop(user_id, None)
+        await message.reply(f"✅ کول‌داون میو روی `{sec}` ثانیه تنظیم شد.", components=settings_hub_kb())
+        return True
     text = (text or "").strip()
 
     # لغو هر pending
