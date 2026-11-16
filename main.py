@@ -546,11 +546,8 @@ async def on_message(message: Message):
                 except Exception:
                     pass
             ok, msg, pts = await register_meow(int(user_id), first_name, username, chat_id)
-            # در گروه کیبورد اصلی شلوغ است — بدون منو جواب بده
-            if private:
-                await message.reply(msg, components=await _main_kb())
-            else:
-                await message.reply(msg)
+            # بدون MenuKeyboard تا دکمه تبلیغ (اینلاین URL) زیر پیام دیده شود
+            await message.reply(msg)
             return
 
         # ---- ارتقا باشگاه با متن ----
@@ -588,24 +585,23 @@ async def on_message(message: Message):
         key = text.lower() if text.isascii() else text
         if key in shortcuts or text in shortcuts:
             data = shortcuts.get(text) or shortcuts.get(key)
+            # منوی اصلی: یک بار بفرست (بدون تکرار)
+            if data == "menu:main":
+                try:
+                    from core.menu import WELCOME as _W
+                except Exception:
+                    _W = "🐱 Meowixi"
+                try:
+                    await message.reply(_W, components=main_reply_kb())
+                except TypeError:
+                    await message.reply(_W, components=main_reply_kb())
+                return
             await _route_callback_data(message, user_id, data, first_name, username)
-            # تعویض کیبورد پایین صفحه فقط وقتی بخش عوض می‌شود (نه زیر پیام‌های قبلی)
             try:
                 if data == "menu:play":
                     await message.reply("🎮 بخش بازی‌ها", components=play_reply_kb())
                 elif data == "pet:home":
                     await message.reply("🐈 پنل گربه", components=pet_reply_kb())
-                elif data in ("menu:main", BTN_HOME, "menu:help", "menu:guide"):
-                    await message.reply("🏠 منوی اصلی", components=main_reply_kb())
-            except Exception:
-                pass
-            # keep reply keyboard under user input
-            try:
-                if data in ("menu:main", "menu:help", "menu:guide", "menu:profile", "menu:daily", "menu:rank", "menu:play"):
-                    pass  # responses already sent; refresh kb
-                    await message.reply("▫️", components=main_reply_kb())
-                elif data == "menu:play":
-                    await message.reply("🎮", components=play_reply_kb())
             except Exception:
                 pass
             return
@@ -1161,24 +1157,7 @@ async def on_callback(callback: CallbackQuery):
 
 
 # Alias listeners (python-bale-bot accepts both event names)
-try:
-    bot.listen("on_message")(on_message)
-except Exception as _le:
-    logger.debug("listen on_message: %s", _le)
-try:
-    bot.listen("on_callback")(on_callback)
-except Exception as _le:
-    logger.debug("listen on_callback: %s", _le)
-
-# پشتیبانی از هر دو سبک event و handler (نسخه‌های مختلف bale)
-try:
-    from bale.handlers import CallbackQueryHandler
-    @bot.handle(CallbackQueryHandler())
-    async def _callback_handler_fallback(callback: CallbackQuery):
-        # اگر event on_callback قبلاً جواب داده، دوباره اجرا می‌شود — ایرادی ندارد
-        await on_callback(callback)
-except Exception as _e:
-    logger.debug(f"CallbackQueryHandler not registered: {_e}")
+# Handlers only via @bot.event — avoid double dispatch
 
 
 

@@ -98,14 +98,11 @@ def _button_url(btn) -> Optional[str]:
 
 
 def with_promo(components=None, *, skip_ad: bool = False):
-    """Attach optional ad row. Reply keyboards pass through; inline ads disabled."""
-    # User preference: no buttons under bot messages
+    """Attach ad URL button under bot messages when enabled.
+    Reply/Menu keyboards pass through unchanged (cannot mix with inline).
+    """
     if components is not None and type(components).__name__ in ("MenuKeyboardMarkup", "ReplyKeyboardMarkup"):
         return components
-    return None  # strip inline under-message keyboards
-
-def _with_promo_disabled_legacy(components=None, *, skip_ad: bool = False):
-    """legacy body kept unused"""
     markup = InlineKeyboardMarkup()
     max_row = 0
     existing_urls = set()
