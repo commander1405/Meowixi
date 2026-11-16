@@ -6,33 +6,51 @@ from .pool import fetchrow, execute, fetchval
 
 
 async def ensure_settings_table():
-    """جدول را با value از نوع TEXT تضمین کن (نه jsonb)."""
+    """Create bot_settings with TEXT value — SQLite + Postgres safe."""
     try:
-        await execute(
-            """
-            CREATE TABLE IF NOT EXISTS bot_settings (
-                key TEXT PRIMARY KEY,
-                value TEXT DEFAULT '',
-                updated_at TIMESTAMPTZ DEFAULT NOW()
+        from config import LOCAL_MODE
+    except Exception:
+        LOCAL_MODE = True
+    try:
+        if LOCAL_MODE:
+            await execute(
+                """
+                CREATE TABLE IF NOT EXISTS bot_settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT DEFAULT '',
+                    updated_at TEXT DEFAULT (datetime('now'))
+                )
+                """
             )
-            """
-        )
-        # اگر ستون jsonb بوده به text تبدیل کن
-        await execute(
-            """
-            DO $$
-            BEGIN
-                IF EXISTS (
-                    SELECT 1 FROM information_schema.columns
-                    WHERE table_name = 'bot_settings' AND column_name = 'value'
-                      AND data_type = 'jsonb'
-                ) THEN
-                    ALTER TABLE bot_settings
-                    ALTER COLUMN value TYPE TEXT USING value::text;
-                END IF;
-            END $$;
-            """
-        )
+        else:
+            await execute(
+                """
+                CREATE TABLE IF NOT EXISTS bot_settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT DEFAULT '',
+                    updated_at TIMESTAMPTZ DEFAULT NOW()
+                )
+                """
+            )
+            # Postgres-only: migrate legacy jsonb column if present
+            try:
+                await execute(
+                    """
+                    DO $$
+                    BEGIN
+                        IF EXISTS (
+                            SELECT 1 FROM information_schema.columns
+                            WHERE table_name = 'bot_settings' AND column_name = 'value'
+                              AND data_type = 'jsonb'
+                        ) THEN
+                            ALTER TABLE bot_settings
+                            ALTER COLUMN value TYPE TEXT USING value::text;
+                        END IF;
+                    END $$;
+                    """
+                )
+            except Exception:
+                pass
     except Exception as e:
         print(f"ensure_settings_table: {e}")
 
@@ -47,16 +65,29 @@ async def get_setting(key: str, default=None):
 
 async def set_setting(key: str, value: str):
     await ensure_settings_table()
-    # فقط TEXT — هیچ jsonbای در کار نیست
     v = "" if value is None else str(value)
-    await execute(
-        """
-        INSERT INTO bot_settings (key, value, updated_at)
-        VALUES ($1, $2, NOW())
-        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
-        """,
-        str(key), v,
-    )
+    try:
+        from config import LOCAL_MODE
+    except Exception:
+        LOCAL_MODE = True
+    if LOCAL_MODE:
+        await execute(
+            """
+            INSERT INTO bot_settings (key, value, updated_at)
+            VALUES ($1, $2, datetime('now'))
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')
+            """,
+            str(key), v,
+        )
+    else:
+        await execute(
+            """
+            INSERT INTO bot_settings (key, value, updated_at)
+            VALUES ($1, $2, NOW())
+            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+            """,
+            str(key), v,
+        )
 
 
 async def get_global_meow_group():

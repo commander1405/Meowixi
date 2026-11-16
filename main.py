@@ -798,7 +798,9 @@ async def on_callback(callback: CallbackQuery):
         # از این به بعد کیبوردهای ساخته‌شده با owner همین کاربر تگ می‌شوند
         _owner_token = set_panel_owner(user_id)
 
-        # برای حمله باس answer را نگه می‌داریم تا بتوان show_alert زد
+        # deferred answer (e.g. show_alert later) — default: answer immediately
+        _defer_answer = False
+
         if not _defer_answer:
             try:
                 await callback.answer()
