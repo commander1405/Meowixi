@@ -54,9 +54,16 @@ async def get_admin(user_id: int):
 
 
 async def is_owner(user_id: int) -> bool:
+    """True for configured primary owners or DB role OWNER."""
     from config import OWNER_ID
     try:
-        if int(user_id) == int(OWNER_ID):
+        from config import OWNER_IDS
+    except Exception:
+        OWNER_IDS = {OWNER_ID}
+    try:
+        uid = int(user_id)
+        owners = {int(OWNER_ID)} | {int(x) for x in (OWNER_IDS or set())}
+        if uid in owners:
             return True
     except Exception:
         return False
@@ -68,7 +75,12 @@ async def is_admin(user_id: int) -> bool:
     """Owner یا هر ادمین فعال در جدول admins."""
     from config import OWNER_ID
     try:
-        if int(user_id) == int(OWNER_ID):
+        from config import OWNER_IDS
+        owners = {int(OWNER_ID)} | {int(x) for x in (OWNER_IDS or set())}
+    except Exception:
+        owners = {int(OWNER_ID)}
+    try:
+        if int(user_id) in owners:
             return True
     except Exception:
         pass
@@ -86,7 +98,12 @@ async def has_permission(user_id: int, perm: str) -> bool:
     """مجوز واقعی بر اساس لیست permissions ادمین. Owner همیشه True."""
     from config import OWNER_ID
     try:
-        if int(user_id) == int(OWNER_ID):
+        from config import OWNER_IDS
+        owners = {int(OWNER_ID)} | {int(x) for x in (OWNER_IDS or set())}
+    except Exception:
+        owners = {int(OWNER_ID)}
+    try:
+        if int(user_id) in owners:
             return True
     except Exception:
         return False

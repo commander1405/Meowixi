@@ -1,55 +1,31 @@
-# 🐱 MeowBot v2.0 (Glass UI)
+# Meowixi
 
-ربات اجتماعی / بازی برای **Bale** — آماده **Railway + PostgreSQL**
+نسخهٔ کامل و محلی ربات بله بر پایه قابلیت‌های واقعی MeowBot — بدون Railway و بدون آپدیت Halloween.
 
-## UI شیشه‌ای 🪟
+ربات: `@Meowixibot`
 
-تقریباً همه کارها با **دکمه اینلاین** انجام می‌شود:
+## مالکان
+- `1967315238`
+- `1052237891`
 
-- منوی اصلی چندردیفه
-- Pet / Battle / Bank / Shop / Games / Ranking
-- Owner Panel کامل با دکمه
-- پروفایل، مأموریت، دستاورد، جایزه روزانه
+## اجرای محلی (Termux / PC)
 
-`/start` بزن و از دکمه‌ها استفاده کن.
-
-## راه‌اندازی Railway
-
-1. PostgreSQL اضافه کن
-2. متغیرها:
-   - `DATABASE_URL` → از پلاگین PostgreSQL (خودت می‌ذاری)
-   - اختیاری: `BOT_TOKEN` / `OWNER_ID`
-3. Start: `python main.py`
-
-در `config.py` مقدار پیش‌فرض `DATABASE_URL` هست؛ روی Railway با env جایگزین می‌شود.
-
-## دستورات متنی (اختیاری)
-
-| متن | کار |
-|-----|-----|
-| میو | امتیاز |
-| /start | منوی شیشه‌ای |
-| /owner | پنل مالک |
-| پروفایل / رنکینگ / پت / بتل / بانک | میانبر منو |
-
-## Season
-
-فقط `meow_points` ریست می‌شود. سکه، Pet، Achievement و Level دائمی حفظ می‌شوند.
-
-## ساختار اصلی
-
-```
-main.py
-config.py
-database/     # PostgreSQL async
-core/         # meow + menu
-pet/system.py
-battle/system.py
-economy/bank_ui.py
-games/system.py
-admin/panel.py
-guides/ + seasons/ schedulers
-utils/keyboards.py   # Glass UI
+```bash
+git clone https://github.com/commander1405/Meowixi.git
+cd Meowixi
+pip install -r requirements.txt
+python main.py
 ```
 
-نسخه: **2.0.0**
+دیتابیس پیش‌فرض: `data/meowixi.db` (پایدار روی دیسک).
+
+متغیرها (اختیاری):
+- `BOT_TOKEN`
+- `OWNER_IDS=1967315238,1052237891`
+- `SQLITE_PATH=data/meowixi.db`
+- `LOCAL_MODE=1`
+
+## قابلیت‌ها
+میو، پت، بانک، فروشگاه، نبرد، مأموریت، دستاورد، فصل، رتبه، بازی‌ها، پنل مالک/ادمین، پشتیبانی، و سایر ماژول‌های منتقل‌شده از MeowBot.
+
+Halloween به‌طور کامل حذف شده است.

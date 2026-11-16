@@ -1,7 +1,7 @@
-python-bale-bot
-asyncpg
+python-bale-bot>=2.5.0,<3
 Pillow
 imageio-ffmpeg
 arabic-reshaper
 python-bidi
 aiofiles
+# asyncpg is optional (only if LOCAL_MODE=0 and DATABASE_URL set)

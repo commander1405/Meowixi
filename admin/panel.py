@@ -64,7 +64,6 @@ def nav():
     return _kb([
         [("📊 وضعیت", "owner:status"), ("👥 مدیریت", "owner:mgmt")],
         [("🎁 اقتصاد", "owner:economy"), ("⚙️ تنظیمات", "owner:settings_hub")],
-        [("🎃 رویداد", "owner:halloween")],
         [("🔙 بستن", "owner:close")],
     ])
 
@@ -87,14 +86,10 @@ def settings_hub_kb():
     ])
 
 
-async def halloween_owner_kb():
-    from halloween.event_settings import event_active
     on = event_active()
-    toggle = ("🎃 خاموش‌کردن هالووین", "owner:hw_off_ask") if on else ("👻 فعال‌کردن هالووین", "owner:hw_on")
     return _kb([
         [toggle],
         [("👻 مدیریت باس", "owner:boss_menu")],
-        [("ℹ️ وضعیت", "owner:halloween")],
         [("🔙 منوی Owner", "owner:home")],
     ])
 
@@ -104,7 +99,6 @@ def boss_menu_kb():
         [("🌍 فرستادن باس فایت به همه گروه‌ها", "owner:boss_all_ask")],
         [("🔍 باس برای یک گروه", "owner:boss_find")],
         [("🛑 لغو همه باس فایت‌ها", "owner:boss_cancel_all_ask")],
-        [("🔙 رویداد", "owner:halloween")],
     ])
 
 
@@ -122,10 +116,8 @@ def boss_all_confirm_kb():
     ])
 
 
-def halloween_confirm_off_kb():
     return _kb([
         [("🔴 بله، غیرفعال کن", "owner:hw_off_yes")],
-        [("🔙 انصراف", "owner:halloween")],
     ])
 
 
@@ -211,7 +203,6 @@ def uptime_str():
 
 async def show_owner_panel(message):
     try:
-        from halloween.event_settings import event_status_text
         hw = event_status_text()
     except Exception:
         hw = "—"
@@ -231,10 +222,8 @@ async def handle_owner_callback(bot, callback, data: str):
     msg = callback.message
     user_id = int(callback.from_user.id) if callback.from_user else 0
 
-    # --- compact hubs + Halloween toggle (owner-only; caller already checks) ---
     if action in ("home", ""):
         try:
-            from halloween.event_settings import event_status_text
             hw = event_status_text()
         except Exception:
             hw = "—"
@@ -251,58 +240,38 @@ async def handle_owner_callback(bot, callback, data: str):
     if action == "settings_hub":
         await _edit(msg, "⚙️ **تنظیمات**\nفصل، راهنما، همگانی، بکاپ.", settings_hub_kb())
         return
-    if action == "halloween":
         try:
-            from halloween.event_settings import event_status_text
             st = event_status_text()
         except Exception:
             st = "—"
-        kb = await halloween_owner_kb()
-        await _edit(msg, f"🎃 **رویداد هالووین**\n{st}\nداده کاربران پاک نمی‌شود.", kb)
         return
     if action == "hw_off_ask":
         await _edit(
             msg,
-            "⚠️ **غیرفعال‌کردن هالووین**\n"
-            "اسپان کدو/باس، گردونه، شکلات و فروش جادوگر متوقف می‌شود.\n"
             "پیشرفت و آیتم‌های قبلی حفظ می‌شوند.",
-            halloween_confirm_off_kb(),
         )
         return
     if action == "hw_off_yes":
-        from halloween.event_settings import set_event_enabled
         await set_event_enabled(False)
-        kb = await halloween_owner_kb()
-        await _edit(msg, "🔇 هالووین خاموش شد.\nمنوی کاربران به حالت عادی برگشت.", kb)
         return
     if action == "hw_on":
-        from halloween.event_settings import set_event_enabled
         await set_event_enabled(True)
-        kb = await halloween_owner_kb()
-        await _edit(msg, "🎃 هالووین دوباره فعال شد.", kb)
         return
 
     if action == "boss_menu":
-        from halloween.event_settings import event_active
         if not event_active():
-            await _edit(msg, "🔇 هالووین خاموش است.\nاول رویداد را فعال کن.", await halloween_owner_kb())
             return
-        await _edit(msg, "👻 **مدیریت باس روح**\nاسپان دستی برای یک گروه یا همه.", boss_menu_kb())
         return
 
     if action == "boss_find":
-        from halloween.event_settings import event_active
         if not event_active():
-            await _edit(msg, "🔇 هالووین خاموش است. اول رویداد را فعال کن.", await halloween_owner_kb())
             return
         _pending[user_id] = {"action": "boss_group_find"}
         await _edit(msg, "🔍 آیدی یا بخشی از نام گروه را بفرست:", back_nav())
         return
 
     if action.startswith("boss_one_ask:"):
-        from halloween.event_settings import event_active
         if not event_active():
-            await _edit(msg, "🔇 هالووین خاموش است.", await halloween_owner_kb())
             return
         cid = action.split(":", 1)[1]
         g = await get_group(cid)
@@ -318,20 +287,15 @@ async def handle_owner_callback(bot, callback, data: str):
         return
 
     if action.startswith("boss_one_yes:"):
-        from halloween.event_settings import event_active
         if not event_active():
-            await _edit(msg, "🔇 هالووین خاموش است.", await halloween_owner_kb())
             return
         cid = action.split(":", 1)[1]
         active = await fetchval(
-            "SELECT id FROM halloween_boss WHERE chat_id=$1 AND active=TRUE LIMIT 1",
             str(cid),
         )
         if active:
             await _edit(msg, f"⚠️ این گروه همین حالا باس فعال دارد.\n`{cid}`", boss_menu_kb())
             return
-        from halloween.handlers import spawn_boss
-        ok = await spawn_boss(bot, str(cid), update_schedule=True)
         if ok:
             await _edit(msg, f"✅ باس فایت به گروه `{cid}` ارسال شد.", boss_menu_kb())
         else:
@@ -339,9 +303,7 @@ async def handle_owner_callback(bot, callback, data: str):
         return
 
     if action == "boss_all_ask":
-        from halloween.event_settings import event_active
         if not event_active():
-            await _edit(msg, "🔇 هالووین خاموش است. اول رویداد را فعال کن.", await halloween_owner_kb())
             return
         groups = await get_all_groups()
         n = len(groups or [])
@@ -356,13 +318,10 @@ async def handle_owner_callback(bot, callback, data: str):
         return
 
     if action == "boss_all_yes":
-        from halloween.event_settings import event_active
         if not event_active():
-            await _edit(msg, "🔇 هالووین خاموش است.", await halloween_owner_kb())
             return
         await _edit(msg, "⏳ در حال ارسال باس به گروه‌ها…", boss_menu_kb())
         groups = await get_all_groups()
-        from halloween.handlers import spawn_boss
         import asyncio as _aio
         sent = skipped = failed = 0
         for g in groups or []:
@@ -373,13 +332,11 @@ async def handle_owner_callback(bot, callback, data: str):
                 continue
             try:
                 active = await fetchval(
-                    "SELECT id FROM halloween_boss WHERE chat_id=$1 AND active=TRUE LIMIT 1",
                     cid,
                 )
                 if active:
                     skipped += 1
                     continue
-                ok = await spawn_boss(bot, cid, update_schedule=True)
                 if ok:
                     sent += 1
                 else:
@@ -398,7 +355,6 @@ async def handle_owner_callback(bot, callback, data: str):
 
     if action == "boss_cancel_all_ask":
         active_n = int(await fetchval(
-            "SELECT COUNT(*) FROM halloween_boss WHERE active=TRUE"
         ) or 0)
         await _edit(
             msg,
@@ -412,7 +368,6 @@ async def handle_owner_callback(bot, callback, data: str):
         return
 
     if action == "boss_cancel_all_yes":
-        from halloween.handlers import cancel_all_active_bosses
         await _edit(msg, "⏳ در حال لغو همه باس‌ها…", boss_menu_kb())
         try:
             report = await cancel_all_active_bosses(bot, reason="owner")

@@ -32,11 +32,7 @@ from core.group_settings import show_group_list
 
 
 async def _main_kb():
-    try:
-        from halloween.event_settings import event_active
-        return main_menu_kb(halloween_on=event_active())
-    except Exception:
-        return main_menu_kb(halloween_on=True)
+    return main_menu_kb()
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -130,7 +126,6 @@ async def on_ready():
     for label, loader in (
         ("Auto Guide", lambda: __import__("guides.scheduler", fromlist=["start_guide_scheduler"]).start_guide_scheduler(bot)),
         ("Season", lambda: __import__("seasons.scheduler", fromlist=["start_season_scheduler"]).start_season_scheduler(bot)),
-        ("Halloween boss", lambda: __import__("halloween.scheduler", fromlist=["start_boss_scheduler"]).start_boss_scheduler(bot)),
         ("Pet night", lambda: __import__("pet.night_schedule", fromlist=["start_night_scheduler"]).start_night_scheduler(bot)),
     ):
         try:
@@ -534,21 +529,6 @@ async def on_message(message: Message):
                 await message.reply(msg, components=await _main_kb())
             else:
                 await message.reply(msg)
-                # شانس اسپان هالووین در گروه (کدو / باس)
-                if ok and chat_id is not None:
-                    try:
-                        import random as _rnd
-                        from halloween.event_settings import event_active
-                        if event_active():
-                            r = _rnd.random()
-                            if r < 0.08:
-                                from halloween.handlers import spawn_pumpkin_event
-                                await spawn_pumpkin_event(bot, str(chat_id))
-                            elif r < 0.11:
-                                from halloween.handlers import spawn_boss
-                                await spawn_boss(bot, str(chat_id))  # only group context reaches here
-                    except Exception as _hw_e:
-                        logger.debug(f"halloween spawn: {_hw_e}")
             return
 
         # ---- ارتقا باشگاه با متن ----
@@ -575,7 +555,6 @@ async def on_message(message: Message):
             "فروشگاه": "shop:home", "shop": "shop:home",
             "بازی": "games:home", "games": "games:home",
             "روزانه": "menu:daily", "daily": "menu:daily",
-            "هالووین": "hw:home", "halloween": "hw:home", "/halloween": "hw:home", "🎃": "hw:home",
         }
         key = text.lower() if text.isascii() else text
         if key in shortcuts or text in shortcuts:
@@ -619,9 +598,6 @@ async def _dispatch(user_id, data: str, first_name="", username="", chat_id=None
     if data.startswith("menu:") or data.startswith("act:") or data.startswith("rank:"):
         return await handle_menu_callback(user_id, data, first_name, chat_id=chat_id, private=private)
 
-    # Halloween
-    if data.startswith("hw:"):
-        from halloween.handlers import handle_hw_callback
         return await handle_hw_callback(
             user_id, data, first_name=first_name, chat_id=chat_id, bot=bot, message=None
         )
@@ -823,7 +799,6 @@ async def on_callback(callback: CallbackQuery):
         _owner_token = set_panel_owner(user_id)
 
         # برای حمله باس answer را نگه می‌داریم تا بتوان show_alert زد
-        _defer_answer = str(data or "").startswith("hw:atk:")
         if not _defer_answer:
             try:
                 await callback.answer()
@@ -1071,9 +1046,6 @@ async def on_callback(callback: CallbackQuery):
         except Exception:
             pass
 
-        # Halloween group actions need message for in-place edit
-        if data.startswith("hw:"):
-            from halloween.handlers import handle_hw_callback
             result = await handle_hw_callback(
                 user_id, data, first_name=first_name, chat_id=chat_id, bot=bot, message=msg
             )
@@ -1093,7 +1065,6 @@ async def on_callback(callback: CallbackQuery):
             text, kb = WELCOME, await _main_kb()
 
         # Group pumpkin/boss: kb=None یعنی پیام گروه ادیت شده یا فقط alert لازم است
-        if data.startswith("hw:") and (kb is None or text is None or show_alert):
             try:
                 await callback.answer(
                     str(text or "✓")[:200],
@@ -1160,8 +1131,9 @@ except Exception as _e:
     logger.debug(f"CallbackQueryHandler not registered: {_e}")
 
 
+
 async def _bootstrap_db():
-    """Init local/postgres DB before polling so /start always works."""
+    """Init local SQLite DB before polling so /start always works."""
     global _db_ready
     from config import LOCAL_MODE
     print(f"Starting {BOT_NAME} v{BOT_VERSION}... LOCAL_MODE={LOCAL_MODE}")
@@ -1170,18 +1142,6 @@ async def _bootstrap_db():
         await seed_achievements()
         await seed_missions()
         await seed_shop()
-        try:
-            from halloween.schema import ensure_halloween_schema
-            await ensure_halloween_schema()
-            print("✅ Halloween schema ready")
-            try:
-                from halloween.event_settings import refresh_event_flag
-                on = await refresh_event_flag()
-                print(f"🎃 Halloween enabled={on}")
-            except Exception as _he:
-                print(f"⚠️ Halloween flag: {_he}")
-        except Exception as e:
-            print(f"⚠️ Halloween schema (non-fatal): {e}")
         try:
             from utils.ui_helpers import refresh_promo_from_db
             await refresh_promo_from_db()
@@ -1193,12 +1153,10 @@ async def _bootstrap_db():
         _db_ready = False
         print(f"❌ Database init FAILED: {type(e).__name__}: {e}")
         traceback.print_exc()
-        # still start bot so user sees replies / errors
 
 
 async def async_main():
     await _bootstrap_db()
-    # python-bale-bot 2.5 lifecycle: async with bot → connect → updater.polling
     async with bot:
         await bot.connect()
 
@@ -1208,4 +1166,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(async_main())
     except KeyboardInterrupt:
-        print("MeowBot stopped.")
+        print("Meowixi stopped.")

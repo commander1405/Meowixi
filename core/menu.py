@@ -52,8 +52,6 @@ async def profile_text(user_id, first_name=""):
         pet_line = f"{pet.get('pet_name')} (Lv.{pet.get('level',1)})"
     hw_line = ""
     try:
-        from halloween import db as hwdb
-        from halloween.event_settings import SKIN_CATALOG
         hu = await hwdb.ensure_hw_user(int(user_id))
         skin = hu.get("active_skin") or ""
         skin_name = (SKIN_CATALOG.get(skin) or {}).get("name") or "ندارد"
@@ -219,8 +217,7 @@ async def daily_reward(user_id):
 async def handle_menu_callback(user_id, data, first_name="", chat_id=None, private=True):
     if data == "menu:main":
         try:
-            from halloween.event_settings import event_active
-            kb = main_menu_kb(halloween_on=event_active())
+            kb = main_menu_kb()
         except Exception:
             kb = main_menu_kb()
         return WELCOME, kb

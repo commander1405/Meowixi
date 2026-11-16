@@ -1,5 +1,4 @@
 # ==========================================
-# 🪟 Glass UI — Compact Halloween Keyboards
 # Max 7 visible buttons per private screen
 # ==========================================
 
@@ -103,18 +102,13 @@ def _count_buttons(kb) -> int:
 
 
 # ---------- Main Menu (≤6 buttons) ----------
-def main_menu_kb(halloween_on: bool = True):
-    """
-    منوی اصلی مینیمال هالووین.
-    1 پروفایل 2 گربه 3 بازی‌ها 4 هالووین/روزانه 5 فروشگاه 6 راهنما
-    """
-    mid = ("👻 هالووین", "hw:home") if halloween_on else ("🎁 روزانه", "menu:daily")
+def main_menu_kb():
+    """منوی اصلی Meowixi — فشرده و بدون Halloween."""
     return glass(
-        [("🎃 پروفایل", "menu:profile"), ("🐈 گربه من", "pet:home")],
-        [("🕯 بازی‌ها", "menu:play"), mid],
-        [("🛍 فروشگاه", "shop:home"), ("📜 راهنما", "menu:help")],
+        [("👤 پروفایل", "menu:profile"), ("🐈 گربه من", "pet:home")],
+        [("🎮 بازی‌ها", "menu:play"), ("🎁 روزانه", "menu:daily")],
+        [("🛒 فروشگاه", "shop:home"), ("📜 راهنما", "menu:help")],
     )
-
 
 def back_main_kb():
     return glass(
@@ -141,14 +135,12 @@ def play_hub_kb():
     )
 
 
-def profile_kb(halloween_on: bool = True):
+def profile_kb():
     rows = [
         [("🔄 بروزرسانی", "menu:profile"), ("🐈 گربه من", "pet:home")],
         [("🏦 بانک", "bank:home"), ("🏆 رنکینگ", "menu:rank")],
+        [("🏠 منوی اصلی", "menu:main")],
     ]
-    if halloween_on:
-        rows.append([("👻 هالووین", "hw:home")])
-    rows.append([("🏠 منوی اصلی", "menu:main")])
     return glass(*rows)
 
 
@@ -301,6 +293,5 @@ def owner_nav_kb():
     return glass(
         [("📊 وضعیت", "owner:status"), ("👥 مدیریت", "owner:mgmt")],
         [("🎁 اقتصاد", "owner:economy"), ("⚙️ تنظیمات", "owner:settings_hub")],
-        [("🎃 رویداد", "owner:halloween")],
         [("🔙 بستن", "owner:close")],
     )

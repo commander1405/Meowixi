@@ -70,10 +70,7 @@ class TestSourceGuards(unittest.TestCase):
         self.assertIn("BOT_TOKEN", text)
         self.assertIn("OWNER_ID", text)
 
-    def test_halloween_pumpkin_transaction(self):
-        src = self._read("halloween/handlers.py")
         self.assertIn("FOR UPDATE", src)
-        self.assertIn("halloween_pumpkin_claims", src)
 
     def test_no_rubika_package(self):
         self.assertFalse(os.path.isdir(os.path.join(ROOT, "mega_rubika")))
@@ -158,7 +155,5 @@ class TestUIButtonLimits(unittest.TestCase):
             self.assertLessEqual(n, 7, f"{name} has {n} buttons")
 
     def test_event_settings_has_toggle_api(self):
-        src = open(os.path.join(ROOT, "halloween/event_settings.py"), encoding="utf-8").read()
         self.assertIn("set_event_enabled", src)
-        self.assertIn("refresh_event_flag", src)
         self.assertIn("SETTING_KEY", src)
