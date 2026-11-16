@@ -15,8 +15,6 @@ logger = logging.getLogger("meowbot.ui")
 # fallback سخت‌کد اگر DB خالی باشد (رفتار قبلی)
 DEFAULT_CHANNEL_URL = "https://ble.ir/join/AGwTW3RLb3"
 DEFAULT_CHANNEL_TITLE = "عضویت در کانال"
-STUDIO_BUTTON_TEXT = "🌑 دارک نایت استدیو"
-STUDIO_BUTTON_URL = "https://ble.ir/join/FetpvYjpGQ"
 
 _message_patched = False
 
@@ -25,25 +23,20 @@ _promo_snapshot = {
     "enabled": False,
     "url": "",
     "title": "",
-    "studio_on": True,
 }
 
 
-def update_promo_snapshot(enabled: bool, url: str, title: str, studio_on: bool = True) -> None:
+def update_promo_snapshot(enabled: bool, url: str, title: str, studio_on: bool = False) -> None:
     _promo_snapshot["enabled"] = bool(enabled)
     _promo_snapshot["url"] = (url or "").strip()
     _promo_snapshot["title"] = (title or "").strip() or DEFAULT_CHANNEL_TITLE
-    _promo_snapshot["studio_on"] = bool(studio_on)
 
 
 async def refresh_promo_from_db() -> None:
     try:
         from admin.ads_mgmt import get_ad_config
         enabled, url, title = await get_ad_config()
-        from database.settings import get_setting
-        studio_raw = await get_setting("studio_button_enabled", "1")
-        studio_on = str(studio_raw or "1").strip().lower() in ("1", "true", "yes", "on")
-        update_promo_snapshot(enabled, url, title, studio_on)
+        update_promo_snapshot(enabled, url, title)
     except Exception as e:
         logger.debug("refresh_promo_from_db: %s", e)
 
@@ -65,9 +58,6 @@ def channel_button() -> InlineKeyboardButton | None:
             logger.error("channel_button create failed: %s", e)
             return None
 
-
-def studio_button() -> InlineKeyboardButton:
-    return InlineKeyboardButton(text=STUDIO_BUTTON_TEXT, url=STUDIO_BUTTON_URL)
 
 
 def _iter_keyboard_items(components) -> list:
@@ -106,10 +96,11 @@ def _button_url(btn) -> Optional[str]:
 
 
 
+
 def with_promo(components=None, *, skip_ad: bool = False):
-    """همیشه دکمه تبلیغ فعال را زیر پیام اینلاین بچسبان.
-    MenuKeyboard جداست و با اینلاین قاطی نمی‌شود؛ در آن حالت همان MenuKeyboard برمی‌گردد
-    و تبلیغ روی پیام‌های بدون MenuKeyboard (مثل میو) قطعی می‌آید.
+    """دکمه تبلیغ قابل‌تنظیم مالک زیر پیام‌ها.
+    فقط اگر owner تبلیغ را فعال کرده باشد.
+    MenuKeyboard بدون تغییر برمی‌گردد.
     """
     if components is not None and type(components).__name__ in ("MenuKeyboardMarkup", "ReplyKeyboardMarkup"):
         return components
@@ -130,7 +121,8 @@ def with_promo(components=None, *, skip_ad: bool = False):
             pass
 
     if skip_ad:
-        return markup if max_row > 0 else components
+        kb_list = getattr(markup, "keyboards", None)
+        return markup if kb_list else components
 
     next_row = max_row + 1
     ad = channel_button()
@@ -139,28 +131,17 @@ def with_promo(components=None, *, skip_ad: bool = False):
         if u and u not in existing_urls:
             try:
                 markup.add(ad, row=next_row)
-                next_row += 1
-                existing_urls.add(u)
             except Exception as e:
                 logger.debug("add ad btn: %s", e)
 
-    # استدیو اختیاری
-    if _promo_snapshot.get("studio_on", True):
-        if STUDIO_BUTTON_URL not in existing_urls:
-            try:
-                markup.add(studio_button(), row=next_row)
-            except Exception:
-                pass
-
-    # اگر هیچ دکمه‌ای نبود و تبلیغ هم نبود
     kb_list = getattr(markup, "keyboards", None)
     if not kb_list:
         return components
     return markup
 
 
-
 def with_studio(components=None):
+    """سازگاری قدیمی — استدیو حذف شده، فقط تبلیغ مالک."""
     return with_promo(components)
 
 
