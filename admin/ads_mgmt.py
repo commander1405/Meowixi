@@ -57,11 +57,20 @@ async def set_ad_enabled(on: bool) -> None:
     await set_setting("ad_enabled", "1" if on else "0")
     invalidate_ad_cache()
     try:
-        from utils.ui_helpers import update_promo_snapshot
+        from utils.ui_helpers import update_promo_snapshot, DEFAULT_CHANNEL_URL, DEFAULT_CHANNEL_TITLE
         enabled, url, title = await get_ad_config()
-        update_promo_snapshot(enabled, url, title)
-    except Exception:
-        pass
+        if enabled and not url:
+            url = DEFAULT_CHANNEL_URL
+            await set_setting("ad_url", url)
+        if enabled and not title:
+            title = DEFAULT_CHANNEL_TITLE
+            await set_setting("ad_title", title)
+        invalidate_ad_cache()
+        enabled, url, title = await get_ad_config()
+        update_promo_snapshot(bool(enabled), url or DEFAULT_CHANNEL_URL, title or DEFAULT_CHANNEL_TITLE)
+        print(f"[ads] enabled={enabled} url={url!r} title={title!r}")
+    except Exception as e:
+        print(f"[ads] set_ad_enabled snapshot error: {e}")
 
 
 async def set_ad_url(url: str) -> None:

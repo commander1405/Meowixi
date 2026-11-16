@@ -6,58 +6,28 @@ from .pool import fetchrow, execute, fetchval
 
 
 async def ensure_settings_table():
-    """Create bot_settings with TEXT value — SQLite + Postgres safe."""
+    """Create bot_settings — SQLite-safe (no DEFAULT (datetime))."""
     try:
-        from config import LOCAL_MODE
-    except Exception:
-        LOCAL_MODE = True
-    try:
-        if LOCAL_MODE:
-            await execute(
-                """
-                CREATE TABLE IF NOT EXISTS bot_settings (
-                    key TEXT PRIMARY KEY,
-                    value TEXT DEFAULT '',
-                    updated_at TEXT DEFAULT (datetime('now'))
-                )
-                """
+        await execute(
+            """
+            CREATE TABLE IF NOT EXISTS bot_settings (
+                key TEXT PRIMARY KEY,
+                value TEXT DEFAULT '',
+                updated_at TEXT
             )
-        else:
-            await execute(
-                """
-                CREATE TABLE IF NOT EXISTS bot_settings (
-                    key TEXT PRIMARY KEY,
-                    value TEXT DEFAULT '',
-                    updated_at TIMESTAMPTZ DEFAULT NOW()
-                )
-                """
-            )
-            # Postgres-only: migrate legacy jsonb column if present
-            try:
-                await execute(
-                    """
-                    DO $$
-                    BEGIN
-                        IF EXISTS (
-                            SELECT 1 FROM information_schema.columns
-                            WHERE table_name = 'bot_settings' AND column_name = 'value'
-                              AND data_type = 'jsonb'
-                        ) THEN
-                            ALTER TABLE bot_settings
-                            ALTER COLUMN value TYPE TEXT USING value::text;
-                        END IF;
-                    END $$;
-                    """
-                )
-            except Exception:
-                pass
+            """
+        )
     except Exception as e:
         print(f"ensure_settings_table: {e}")
 
 
 async def get_setting(key: str, default=None):
     await ensure_settings_table()
-    val = await fetchval("SELECT value FROM bot_settings WHERE key = $1", str(key))
+    try:
+        val = await fetchval("SELECT value FROM bot_settings WHERE key = $1", str(key))
+    except Exception as e:
+        print(f"get_setting({key}): {e}")
+        return default
     if val is None:
         return default
     return str(val)
@@ -75,7 +45,9 @@ async def set_setting(key: str, value: str):
             """
             INSERT INTO bot_settings (key, value, updated_at)
             VALUES ($1, $2, datetime('now'))
-            ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')
+            ON CONFLICT(key) DO UPDATE SET
+                value = excluded.value,
+                updated_at = datetime('now')
             """,
             str(key), v,
         )
@@ -84,7 +56,9 @@ async def set_setting(key: str, value: str):
             """
             INSERT INTO bot_settings (key, value, updated_at)
             VALUES ($1, $2, NOW())
-            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+            ON CONFLICT (key) DO UPDATE SET
+                value = EXCLUDED.value,
+                updated_at = NOW()
             """,
             str(key), v,
         )
@@ -96,7 +70,11 @@ async def get_global_meow_group():
     title = await get_setting("global_meow_title", "گروه میو")
     if not chat_id:
         return None
-    return {"chat_id": str(chat_id), "invite_link": str(invite or ""), "title": str(title or "گروه میو")}
+    return {
+        "chat_id": str(chat_id),
+        "invite_link": str(invite or ""),
+        "title": str(title or "گروه میو"),
+    }
 
 
 async def set_global_meow_group(chat_id: str, invite_link: str = "", title: str = ""):

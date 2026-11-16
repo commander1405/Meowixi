@@ -51,11 +51,19 @@ async def refresh_promo_from_db() -> None:
 def channel_button() -> InlineKeyboardButton | None:
     if not _promo_snapshot.get("enabled"):
         return None
-    url = _promo_snapshot.get("url") or ""
-    title = _promo_snapshot.get("title") or DEFAULT_CHANNEL_TITLE
+    url = (_promo_snapshot.get("url") or "").strip() or DEFAULT_CHANNEL_URL
+    title = (_promo_snapshot.get("title") or "").strip() or DEFAULT_CHANNEL_TITLE
     if not url:
         return None
-    return InlineKeyboardButton(text=title[:64], url=url)
+    try:
+        return InlineKeyboardButton(text=str(title)[:64], url=str(url))
+    except TypeError:
+        # older signature variants
+        try:
+            return InlineKeyboardButton(str(title)[:64], url=str(url))
+        except Exception as e:
+            logger.error("channel_button create failed: %s", e)
+            return None
 
 
 def studio_button() -> InlineKeyboardButton:
@@ -145,7 +153,8 @@ def with_promo(components=None, *, skip_ad: bool = False):
                 pass
 
     # اگر هیچ دکمه‌ای نبود و تبلیغ هم نبود
-    if not getattr(markup, "keyboards", None):
+    kb_list = getattr(markup, "keyboards", None)
+    if not kb_list:
         return components
     return markup
 
@@ -192,6 +201,62 @@ def _patch_bot_instance(bot) -> None:
             setattr(bot, attr, wrapped)
         except Exception as e:
             print(f"⚠️ Could not patch bot.{attr}: {e}")
+
+
+
+async def reply_text(message, text, components=None, *, ad: bool = True, **kwargs):
+    """ارسال قطعی با دکمه تبلیغ اینلاین وقتی ad=True و تبلیغ فعال است.
+    به پچ Message.reply وابسته نیست.
+    """
+    text = str(text if text is not None else "…")
+    is_menu = components is not None and type(components).__name__ in (
+        "MenuKeyboardMarkup", "ReplyKeyboardMarkup"
+    )
+    if is_menu:
+        kb = components
+    elif ad:
+        # refresh soft from snapshot; caller may await refresh_promo_from_db first
+        kb = with_promo(components)
+    else:
+        kb = components
+
+    reply = getattr(message, "reply", None)
+    if not callable(reply):
+        raise RuntimeError("message.reply missing")
+
+    # try several call signatures used by different bale versions
+    attempts = []
+    if kb is not None:
+        attempts.extend([
+            lambda: reply(text, components=kb),
+            lambda: reply(text, components=kb, **kwargs) if kwargs else None,
+            lambda: reply(content=text, components=kb),
+        ])
+    attempts.extend([
+        lambda: reply(text),
+        lambda: reply(content=text),
+    ])
+    last_err = None
+    for fn in attempts:
+        if fn is None:
+            continue
+        try:
+            return await fn()
+        except TypeError as e:
+            last_err = e
+            continue
+        except Exception as e:
+            last_err = e
+            continue
+    if last_err:
+        raise last_err
+    return None
+
+
+def build_ad_keyboard():
+    """فقط ردیف دکمه تبلیغ (و استدیو در صورت فعال بودن)."""
+    return with_promo(None)
+
 
 
 def patch_bot_messaging(bot=None):

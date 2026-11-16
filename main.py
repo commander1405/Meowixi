@@ -56,9 +56,7 @@ async def _is_reply_kb(kb) -> bool:
 
 
 async def _edit_or_reply(target, text, kb=None):
-    """Send/edit text. Inline under-message buttons are disabled by design.
-    Only MenuKeyboard (under user input) is attached.
-    """
+    """Send/edit text. MenuKeyboard برای پایین صفحه؛ در غیر این صورت اینلاین + تبلیغ."""
     if text is None:
         text = "…"
     text = str(text)
@@ -66,12 +64,13 @@ async def _edit_or_reply(target, text, kb=None):
     attach = None
     try:
         if await _is_reply_kb(kb):
-            attach = kb
+            attach = kb  # reply keyboard — تبلیغ روی این نوع پیام ممکن نیست
         else:
-            # drop InlineKeyboard under messages
-            attach = None
+            # اینلاین منو + دکمه تبلیغ فعال
+            from utils.ui_helpers import with_promo
+            attach = with_promo(kb)
     except Exception:
-        attach = None
+        attach = kb
 
     # Prefer edit only when not attaching a new reply keyboard
     if attach is None:
@@ -546,8 +545,21 @@ async def on_message(message: Message):
                 except Exception:
                     pass
             ok, msg, pts = await register_meow(int(user_id), first_name, username, chat_id)
-            # بدون MenuKeyboard تا دکمه تبلیغ (اینلاین URL) زیر پیام دیده شود
-            await message.reply(msg)
+            try:
+                from utils.ui_helpers import reply_text, refresh_promo_from_db, _promo_snapshot as _ps
+                await refresh_promo_from_db()
+                logger.info(
+                    "promo snapshot enabled=%s url=%s title=%s",
+                    _ps.get("enabled"), bool(_ps.get("url")), _ps.get("title"),
+                )
+                await reply_text(message, msg, ad=True)
+            except Exception as _me:
+                logger.error("meow reply: %s", _me)
+                try:
+                    from utils.ui_helpers import with_promo
+                    await message.reply(msg, components=with_promo(None))
+                except Exception:
+                    await message.reply(msg)
             return
 
         # ---- ارتقا باشگاه با متن ----
