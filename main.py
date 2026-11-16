@@ -28,11 +28,18 @@ from database.users import spend_meow_coins, get_meow_coins
 from core.meow import is_meow, is_allowed_group, register_meow
 from core.menu import WELCOME, handle_menu_callback
 from utils.keyboards import main_menu_kb, shop_kb, back_main_kb, shop_cats_kb, set_panel_owner, reset_panel_owner
+from utils.reply_keyboards import (
+    main_reply_kb, play_reply_kb, pet_reply_kb, back_home_reply_kb,
+    BTN_PROFILE, BTN_PET, BTN_PLAY, BTN_DAILY, BTN_SHOP, BTN_HELP, BTN_HOME,
+    BTN_RANK, BTN_BANK, BTN_BATTLE, BTN_GAMES, BTN_MISSIONS, BTN_ACHIEVE,
+)
 from core.group_settings import show_group_list
 
 
 async def _main_kb():
-    return main_menu_kb()
+    """Keyboard under user input (MenuKeyboard), not under bot message."""
+    return main_reply_kb()
+
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -42,67 +49,82 @@ bot = Bot(token=BOT_TOKEN)
 _start_time = time.time()
 
 
+async def _is_reply_kb(kb) -> bool:
+    if kb is None:
+        return False
+    return type(kb).__name__ in ("MenuKeyboardMarkup", "ReplyKeyboardMarkup")
+
+
 async def _edit_or_reply(target, text, kb=None):
-    try:
-        kb = with_promo(kb)
-    except Exception:
-        pass
-    """Edit message if possible, otherwise reply. Never silent."""
+    """Send/edit text. Inline under-message buttons are disabled by design.
+    Only MenuKeyboard (under user input) is attached.
+    """
     if text is None:
         text = "…"
     text = str(text)
-    # 1) try edit
-    for method_name in ("edit_text", "edit"):
-        method = getattr(target, method_name, None)
-        if not callable(method):
-            continue
-        try:
-            if kb is not None:
-                await method(text, components=kb)
-            else:
+
+    attach = None
+    try:
+        if await _is_reply_kb(kb):
+            attach = kb
+        else:
+            # drop InlineKeyboard under messages
+            attach = None
+    except Exception:
+        attach = None
+
+    # Prefer edit only when not attaching a new reply keyboard
+    if attach is None:
+        for method_name in ("edit_text", "edit"):
+            method = getattr(target, method_name, None)
+            if not callable(method):
+                continue
+            try:
                 await method(text)
+                return True
+            except TypeError:
+                try:
+                    await method(content=text)
+                    return True
+                except Exception:
+                    continue
+            except Exception:
+                continue
+
+    # Reply path (and always when reply keyboard must be shown)
+    reply = getattr(target, "reply", None)
+    if callable(reply):
+        try:
+            if attach is not None:
+                await reply(text, components=attach)
+            else:
+                await reply(text)
             return True
         except TypeError:
             try:
-                # some versions: edit(content=..., components=...)
-                if kb is not None:
-                    await method(content=text, components=kb)
+                if attach is not None:
+                    await reply(content=text, components=attach)
                 else:
-                    await method(content=text)
+                    await reply(content=text)
                 return True
-            except Exception as e:
-                logger.debug(f"{method_name} type fallback: {e}")
-        except Exception as e:
-            logger.debug(f"{method_name} failed: {e}")
-    # 2) reply on same message object
-    try:
-        if hasattr(target, "reply") and callable(target.reply):
-            if kb is not None:
-                await target.reply(text, components=kb)
-            else:
-                await target.reply(text)
-            return True
-    except Exception as e:
-        logger.warning(f"reply on target failed: {e}")
-    # 3) bot.send_message via chat
+            except Exception:
+                pass
+        except Exception:
+            pass
+
     try:
         chat = getattr(target, "chat", None)
         chat_id = getattr(chat, "id", None) if chat else None
         if chat_id is not None:
-            if kb is not None:
-                await bot.send_message(chat_id, text, components=kb)
+            if attach is not None:
+                await bot.send_message(chat_id, text, components=attach)
             else:
                 await bot.send_message(chat_id, text)
             return True
-    except Exception as e:
-        logger.warning(f"send_message fallback failed: {e}")
+    except Exception:
+        pass
     return False
 
-
-
-
-_ready_lock = False
-_db_ready = False
 
 
 @bot.event
@@ -547,19 +569,45 @@ async def on_message(message: Message):
 
         shortcuts = {
             "پروفایل": "menu:profile", "profile": "menu:profile", "/profile": "menu:profile",
+            BTN_PROFILE: "menu:profile",
             "رنکینگ": "menu:rank", "رتبه": "menu:rank", "ranking": "menu:rank",
+            BTN_RANK: "menu:rank",
             "راهنما": "menu:guide", "help": "menu:guide", "/help": "menu:guide",
-            "پت": "pet:home", "pet": "pet:home",
-            "بتل": "battle:home", "battle": "battle:home", "نبرد": "battle:home",
-            "بانک": "bank:home", "bank": "bank:home",
-            "فروشگاه": "shop:home", "shop": "shop:home",
-            "بازی": "games:home", "games": "games:home",
-            "روزانه": "menu:daily", "daily": "menu:daily",
+            BTN_HELP: "menu:help",
+            "پت": "pet:home", "pet": "pet:home", BTN_PET: "pet:home", "گربه من": "pet:home",
+            "بتل": "battle:home", "battle": "battle:home", "نبرد": "battle:home", BTN_BATTLE: "battle:home",
+            "بانک": "bank:home", "bank": "bank:home", BTN_BANK: "bank:home",
+            "فروشگاه": "shop:home", "shop": "shop:home", BTN_SHOP: "shop:home",
+            "بازی": "games:home", "games": "games:home", BTN_GAMES: "games:home",
+            "بازی‌ها": "menu:play", BTN_PLAY: "menu:play",
+            "روزانه": "menu:daily", "daily": "menu:daily", BTN_DAILY: "menu:daily",
+            "مأموریت": "menu:missions", BTN_MISSIONS: "menu:missions",
+            "دستاورد": "menu:achieve", BTN_ACHIEVE: "menu:achieve",
+            "منوی اصلی": "menu:main", BTN_HOME: "menu:main", "/menu": "menu:main",
         }
         key = text.lower() if text.isascii() else text
         if key in shortcuts or text in shortcuts:
             data = shortcuts.get(text) or shortcuts.get(key)
             await _route_callback_data(message, user_id, data, first_name, username)
+            # تعویض کیبورد پایین صفحه فقط وقتی بخش عوض می‌شود (نه زیر پیام‌های قبلی)
+            try:
+                if data == "menu:play":
+                    await message.reply("🎮 بخش بازی‌ها", components=play_reply_kb())
+                elif data == "pet:home":
+                    await message.reply("🐈 پنل گربه", components=pet_reply_kb())
+                elif data in ("menu:main", BTN_HOME, "menu:help", "menu:guide"):
+                    await message.reply("🏠 منوی اصلی", components=main_reply_kb())
+            except Exception:
+                pass
+            # keep reply keyboard under user input
+            try:
+                if data in ("menu:main", "menu:help", "menu:guide", "menu:profile", "menu:daily", "menu:rank", "menu:play"):
+                    pass  # responses already sent; refresh kb
+                    await message.reply("▫️", components=main_reply_kb())
+                elif data == "menu:play":
+                    await message.reply("🎮", components=play_reply_kb())
+            except Exception:
+                pass
             return
 
         # Interaction toggle

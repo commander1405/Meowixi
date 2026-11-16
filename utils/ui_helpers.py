@@ -97,8 +97,15 @@ def _button_url(btn) -> Optional[str]:
     return None
 
 
-def with_promo(components=None, *, skip_ad: bool = False) -> InlineKeyboardMarkup:
-    """کیبورد فعلی + دکمه تبلیغ (اگر فعال) + استدیو؛ بدون تکرار URL."""
+def with_promo(components=None, *, skip_ad: bool = False):
+    """Attach optional ad row. Reply keyboards pass through; inline ads disabled."""
+    # User preference: no buttons under bot messages
+    if components is not None and type(components).__name__ in ("MenuKeyboardMarkup", "ReplyKeyboardMarkup"):
+        return components
+    return None  # strip inline under-message keyboards
+
+def _with_promo_disabled_legacy(components=None, *, skip_ad: bool = False):
+    """legacy body kept unused"""
     markup = InlineKeyboardMarkup()
     max_row = 0
     existing_urls = set()

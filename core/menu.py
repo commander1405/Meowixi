@@ -209,7 +209,7 @@ async def handle_menu_callback(user_id, data, first_name="", chat_id=None, priva
             kb = main_menu_kb()
         except Exception:
             kb = main_menu_kb()
-        return WELCOME, kb
+        return WELCOME, None
     if data == "menu:close":
         return "🐱 منو بسته شد. هر وقت خواستی /start بزن!", None
     if data == "menu:profile":
@@ -291,4 +291,4 @@ async def handle_menu_callback(user_id, data, first_name="", chat_id=None, priva
         if private or chat_id is None:
             return await ranking_text(kind, scope="global")
         return await ranking_text(kind, chat_id=chat_id, scope="group")
-    return WELCOME, main_menu_kb()
+    return WELCOME, None  # reply kb set by main

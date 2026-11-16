@@ -1,0 +1,36 @@
+async def _edit_or_reply(target, text, kb=None):
+    try:
+        kb = with_promo(kb)
+    except Exception:
+        pass
+    """Edit message if possible, otherwise reply. Never silent."""
+    if text is None:
+        text = "…"
+    text = str(text)
+    # 1) try edit
+    for method_name in ("edit_text", "edit"):
+        method = getattr(target, method_name, None)
+        if not callable(method):
+            continue
+        try:
+            if kb is not None:
+                await method(text, components=kb)
+            else:
+                await method(text)
+            return True
+        except TypeError:
+            try:
+                # some versions: edit(content=..., components=...)
+                if kb is not None:
+                    await method(content=text, components=kb)
+                else:
+                    await method(content=text)
+                return True
+            except Exception as e:
+                logger.debug(f"{method_name} type fallback: {e}")
+        except Exception as e:
+            logger.debug(f"{method_name} failed: {e}")
+    # 2) reply on same message object
+    try:
+        if hasattr(target, "reply") and callable(target.reply):
+        
