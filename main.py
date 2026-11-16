@@ -1,5 +1,5 @@
 # ==========================================
-# 🐱 MeowBot v2.0 — Main (Glass UI + PostgreSQL)
+# 🐱 Meowixi v2.0 — Main (Glass UI + PostgreSQL)
 # ==========================================
 
 import logging

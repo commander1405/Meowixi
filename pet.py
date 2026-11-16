@@ -1,5 +1,5 @@
 # ==========================================
-# 🐱 MeowBot - Pet Meow System
+# 🐱 Meowixi - Pet Meow System
 # ==========================================
 
 import random

@@ -1,5 +1,5 @@
 # ==========================================
-# MeowBot — UI Helpers (Configurable ad + Studio)
+# Meowixi — UI Helpers (Configurable ad + Studio)
 # پورت منطق دکمه تبلیغ MEGA + دکمه استدیو اختیاری
 # ==========================================
 

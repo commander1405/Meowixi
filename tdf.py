@@ -1,5 +1,5 @@
 # ==========================================
-# 🧠🎯💡 MeowBot - Truth / Dare / Fact
+# 🧠🎯💡 Meowixi - Truth / Dare / Fact
 # ==========================================
 
 import random

@@ -340,7 +340,7 @@ async def handle_battle_callback(user_id, data, first_name=""):
         cost = gym_upgrade_cost(gym)
         pts = int(u.get("meow_points") or 0)
         return (
-            f"🏋️ **باشگاه نفرین‌شده**\n"
+            f"🏋️ **باشگاه میو**\n"
             f"سطح: `{gym}` / `{MAX_GYM_LEVEL}`\n"
             f"قدرت: `{power_from_gym(gym)}`\n"
             f"هزینه ارتقا: `{cost}` ⭐ | موجودی: `{pts}`\n"

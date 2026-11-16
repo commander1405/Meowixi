@@ -1,4 +1,4 @@
-# 🐱 MeowBot - Guide
+# 🐱 Meowixi - Guide
 
 GUIDE_COMMANDS = {
     "راهنما", "راهنماا", "راهننا", "کمک", "کمکم",
@@ -24,7 +24,7 @@ def is_guide_command(text):
 
 
 GUIDE_TEXT = """
-🐱 راهنمای MeowBot
+🐱 راهنمای Meowixi
 
 ━━━━━━━━━━━━━━
 

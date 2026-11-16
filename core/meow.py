@@ -1,5 +1,5 @@
 # ==========================================
-# 🐱 MeowBot - Meow System (Async + Anti-Repetition)
+# Meowixi — Meow System (Async + Anti-Repetition)
 # ==========================================
 
 import random
@@ -22,33 +22,29 @@ MEOW_WORDS = {
     "میــــو", "میــــــو", "میاو", "میاوو", "mew", "meow",
 }
 
-# متن‌های متنوع — {name} {gained} {total}
 MEOW_RESPONSES = [
-    "🎃 میو در مه... {name}!\n✨ +{gained} امتیاز نفرین‌شده\n👻 امتیاز فصل: {total}",
-    "👻 روح‌ها میوت رو شنیدن {name}!\n✨ +{gained}\n🕯️ موجودی: {total}",
-    "🦇 از دل شب: میو~\n👤 {name}\n🎃 +{gained} امتیاز\n📊 فصل: {total}",
-    "🌙 مهتاب و میو\n{name} امتیاز گرفت: +{gained}\n🐾 جمع: {total}",
-    "🐈‍⬛ گربه سیاه میو کرد!\n{name} · +{gained}\n🎃 فصل: {total}",
-    "🧙 جادوگر تأیید کرد {name}!\n✨ +{gained} امتیاز هالووین\n📊 {total}",
-    "🕯 شمع‌ها روشن شد...\nمیوی {name}: +{gained}\n👻 جمع امتیاز: {total}",
-    "🎃 کدوها به احترام {name} غلتیدن!\n+{gained} ⭐\nفصل: {total}",
-    "💀 میوی ترسناک از {name}!\n+{gained}\n🐾 {total}",
-    "🌑 شب هالووین، میو بزن\n{name} · +{gained}\n📊 {total}",
-    "👻 بوو~ میو!\n👤 {name}\n🎁 +{gained}\n🎃 Total: {total}",
-    "🦇 خفاش‌ها هم میو گفتن\n{name} +{gained}\n🕯️ {total}",
-    "🧹 جاروی جادوگر رد شد...\nامتیاز برای {name}: +{gained}\n{total}",
-    "🎃 میو میو در تاریکی~\n{name} · +{gained}\n👻 {total}",
-    "🐈‍⬛ پیشی نفرین‌شده تأیید شد\n{name} +{gained} ⭐ · {total}",
+    "🐱 میو! {name}\n✨ +{gained} امتیاز\n🐾 امتیاز فصل: {total}",
+    "🌸 آفرین {name}!\n+{gained} امتیاز میو\n📊 جمع: {total}",
+    "✨ میو میو~\n👤 {name}\n⭐ +{gained}\n🐾 {total}",
+    "🐈 پیشی تأیید کرد!\n{name} · +{gained}\nجمع فصل: {total}",
+    "🎀 میوی نرم و بامزه\n{name}\n+{gained} ⭐ · {total}",
+    "🩷 دلت گرم شد از این میو\n{name}: +{gained}\n{total}",
+    "🌟 امتیاز جدید!\n{name} +{gained}\n🐾 فصل: {total}",
+    "🐱 میو با عشق\n{name}\n✨ +{gained} | 📊 {total}",
+    "🍃 یه میوی آروم\n{name} · +{gained}\nجمع: {total}",
+    "😸 Meow!\n{name} +{gained}\n🐾 {total}",
+    "💫 امتیاز ثبت شد\n{name}: +{gained}\nفصل: {total}",
+    "🐾 میو رسید\n{name} · +{gained} ⭐ · {total}",
 ]
 
 
-
-def normalize_text(text):
+def normalize_text(text) -> str:
     if not text:
         return ""
-    text = str(text).replace("\u200c", "").replace("\u200d", "")
-    text = re.sub(r"\s+", " ", text)
-    return text.strip().lower()
+    t = str(text).strip().lower()
+    t = t.replace("ي", "ی").replace("ك", "ک")
+    t = re.sub(r"\s+", " ", t)
+    return t
 
 
 def is_meow(text) -> bool:
@@ -98,10 +94,10 @@ async def register_meow(user_id: int, first_name: str = "", username: str = "", 
     )
     if not ok:
         msgs = [
-            f"🎃 هنوز زوده! {format_cooldown(remaining)} تا میوی بعدی در مه 👻\n🕯️ امتیاز فصل: {total}",
-            f"🦇 آروم باش، {format_cooldown(remaining)} تا میوی بعدی در تاریکی!\n👻 امتیاز فصل: {total}",
-            f"🕯 روح پیشی هنوز بیداره... {format_cooldown(remaining)}\n🎃 امتیاز: {total}",
-            f"⏳ Cooldown در مه: {format_cooldown(remaining)}\n🕯️ {total}",
+            f"⏳ آروم باش، {format_cooldown(remaining)} تا میوی بعدی\n🐾 امتیاز فصل: {total}",
+            f"🐱 کمی صبر کن… {format_cooldown(remaining)}\n📊 امتیاز فصل: {total}",
+            f"⏰ هنوز زوده: {format_cooldown(remaining)}\n🐾 {total}",
+            f"⏳ Cooldown: {format_cooldown(remaining)}\n📊 امتیاز فصل: {total}",
         ]
         return False, random.choice(msgs), 0
 

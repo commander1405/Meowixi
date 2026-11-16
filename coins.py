@@ -1,5 +1,5 @@
 # ==========================================
-# 🐱 MeowBot - Coins System (Global Account)
+# 🐱 Meowixi - Coins System (Global Account)
 # ==========================================
 
 import sqlite3

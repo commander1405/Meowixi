@@ -1,5 +1,5 @@
 # ==========================================
-# 🐱 MeowBot - Ranking System
+# 🐱 Meowixi - Ranking System
 # ==========================================
 
 from config import RANKING_LIMIT

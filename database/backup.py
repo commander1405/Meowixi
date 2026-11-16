@@ -123,7 +123,7 @@ async def build_backup_file(created_by: int) -> tuple[str, bytes, dict]:
         gz.write(raw)
     data = buf.getvalue()
     stamp = datetime.now(TEHRAN).strftime("%Y-%m-%d_%H-%M-%S")
-    fname = f"MeowBot_Backup_{stamp}.json.gz"
+    fname = f"Meowixi_Backup_{stamp}.json.gz"
     meta = {
         "filename": fname,
         "size_bytes": len(data),
@@ -163,7 +163,7 @@ async def send_backup_to_pv(bot, user_id: int) -> tuple[bool, str]:
 
     size_kb = max(1, meta["size_bytes"] // 1024)
     caption = (
-        f"💾 بکاپ MeowBot\n"
+        f"💾 بکاپ Meowixi\n"
         f"📅 {meta.get('filename', fname)}\n"
         f"📦 حجم: `{size_kb}` KB\n"
         f"👤 برای: `{user_id}`\n\n"

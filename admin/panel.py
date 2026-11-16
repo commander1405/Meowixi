@@ -1,5 +1,5 @@
 # ==========================================
-# 👑 MeowBot — Full Owner / Admin Panel
+# 👑 Meowixi — Full Owner / Admin Panel
 # ==========================================
 
 import time
@@ -89,7 +89,7 @@ def settings_hub_kb():
     on = event_active()
     return _kb([
         [toggle],
-        [("👻 مدیریت باس", "owner:boss_menu")],
+        [("✨ مدیریت باس", "owner:boss_menu")],
         [("🔙 منوی Owner", "owner:home")],
     ])
 
@@ -278,9 +278,9 @@ async def handle_owner_callback(bot, callback, data: str):
         title = (g or {}).get("title") or cid
         await _edit(
             msg,
-            f"🎃 **فرستادن باس فایت**\nگروه: **{title}**\n`{cid}`\nتأیید می‌کنی؟",
+            f"🐱 **فرستادن باس فایت**\nگروه: **{title}**\n`{cid}`\nتأیید می‌کنی؟",
             _kb([
-                [("🎃 بله، بفرست", f"owner:boss_one_yes:{cid}")],
+                [("🐱 بله، بفرست", f"owner:boss_one_yes:{cid}")],
                 [("🔙 انصراف", "owner:boss_menu")],
             ]),
         )
@@ -1182,9 +1182,9 @@ async def handle_owner_text(bot, message, user_id: int, text: str) -> bool:
                 title = g.get("title") or cid
                 _pending.pop(user_id, None)
                 await message.reply(
-                    f"🎃 گروه انتخاب شد: **{title}**\n`{cid}`\nفرستادن باس؟",
+                    f"🐱 گروه انتخاب شد: **{title}**\n`{cid}`\nفرستادن باس؟",
                     components=_kb([
-                        [("🎃 فرستادن باس فایت", f"owner:boss_one_ask:{cid}")],
+                        [("🐱 فرستادن باس فایت", f"owner:boss_one_ask:{cid}")],
                         [("🔙 مدیریت باس", "owner:boss_menu")],
                     ]),
                 )
@@ -1195,7 +1195,7 @@ async def handle_owner_text(bot, message, user_id: int, text: str) -> bool:
                 cid = str(g.get("chat_id"))
                 title = (g.get("title") or cid)[:28]
                 lines.append(f"• {title} — `{cid}`")
-                rows.append([(f"🎃 {title}", f"owner:boss_one_ask:{cid}")])
+                rows.append([(f"🐱 {title}", f"owner:boss_one_ask:{cid}")])
             rows.append([("🔙 مدیریت باس", "owner:boss_menu")])
             _pending.pop(user_id, None)
             await message.reply("\n".join(lines), components=_kb(rows))

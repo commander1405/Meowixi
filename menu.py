@@ -1,5 +1,5 @@
 # ==========================================
-# 🐱 MeowBot - Main Menu (Start / Inline)
+# 🐱 Meowixi - Main Menu (Start / Inline)
 # ==========================================
 
 from bale import InlineKeyboardMarkup, InlineKeyboardButton
@@ -24,13 +24,13 @@ CB_GUIDE = "menu:guide"
 # ------------------------------------------
 
 WELCOME_TEXT = (
-    "🐱 خوش اومدی به MeowBot!\n"
+    "🐱 خوش اومدی به Meowixi!\n"
     "\n"
     "از منوی زیر بخش موردنظرت رو انتخاب کن."
 )
 
 ABOUT_TEXT = (
-    "🐱 MeowBot\n"
+    "🐱 Meowixi\n"
     "\n"
     "این ربات توسط ۱ نفر ساخته و توسعه داده شده است.\n"
     "\n"
@@ -42,9 +42,9 @@ ABOUT_TEXT = (
 )
 
 ADD_GROUP_TEXT = (
-    "🐱 افزودن MeowBot به گروه\n"
+    "🐱 افزودن Meowixi به گروه\n"
     "\n"
-    "می‌خوای MeowBot رو به گروهت اضافه کنی؟\n"
+    "می‌خوای Meowixi رو به گروهت اضافه کنی؟\n"
     "\n"
     "1️⃣ وارد گروه موردنظرت شو.\n"
     "2️⃣ بخش افزودن عضو را باز کن.\n"
@@ -56,11 +56,11 @@ ADD_GROUP_TEXT = (
     "5️⃣ اگر برای فعالیت صحیح نیاز به دسترسی ادمین داشت، "
     "دسترسی‌های لازم را به آن بده.\n"
     "\n"
-    "✅ حالا MeowBot آماده استفاده در گروه است!"
+    "✅ حالا Meowixi آماده استفاده در گروه است!"
 )
 
 GUIDE_MENU_TEXT = (
-    "🐱 راهنمای MeowBot\n"
+    "🐱 راهنمای Meowixi\n"
     "\n"
     "━━━━━━━━━━━━━━\n"
     "\n"

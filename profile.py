@@ -1,5 +1,5 @@
 # ==========================================
-# 🐱 MeowBot - Profile System
+# 🐱 Meowixi - Profile System
 # ==========================================
 
 from database import (

@@ -1,5 +1,5 @@
 # ==========================================
-# 🐱 MeowBot - Database (Global Account Architecture)
+# 🐱 Meowixi - Database (Global Account Architecture)
 # ==========================================
 
 import sqlite3

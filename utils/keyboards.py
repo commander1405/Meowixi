@@ -187,7 +187,7 @@ def battle_home_kb():
     return glass(
         [("⚔️ ورود به صف", "battle:queue"), ("🚪 خروج از صف", "battle:leave_queue")],
         [("🏋️ باشگاه", "battle:gym"), ("📊 آمار", "battle:home")],
-        [("🕯 بازی‌ها", "menu:play")],
+        [("🎮 بازی‌ها", "menu:play")],
         [("🏠 منوی اصلی", "menu:main")],
     )
 
@@ -274,7 +274,7 @@ def games_kb():
     return glass(
         [("🎲 حدس عدد", "games:guess"), ("❓ کوییز", "games:quiz")],
         [("🐱 کوییز گربه", "games:catquiz"), ("⚡ ری‌اکشن", "games:reaction")],
-        [("🕯 بازی‌ها", "menu:play")],
+        [("🎮 بازی‌ها", "menu:play")],
         [("🏠 منوی اصلی", "menu:main")],
     )
 

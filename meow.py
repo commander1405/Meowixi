@@ -1,5 +1,5 @@
 # ==========================================
-# 🐱 MeowBot - Meow System
+# 🐱 Meowixi - Meow System
 # ==========================================
 
 import random
@@ -87,12 +87,12 @@ def is_meow(text):
 
 def is_allowed_group(chat_id, chat_username):
     """
-    MeowBot در تمام گروه‌ها فعال است.
+    Meowixi در تمام گروه‌ها فعال است.
 
     دیگر ALLOWED_GROUP بررسی نمی‌شود.
 
     هر گروهی که ربات در آن پیام دریافت کند
-    می‌تواند از سیستم MeowBot استفاده کند.
+    می‌تواند از سیستم Meowixi استفاده کند.
     """
 
     if chat_id is None:

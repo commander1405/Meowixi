@@ -1,5 +1,5 @@
 # ==========================================
-# 🐱 MeowBot - UI Helpers (Studio Button)
+# 🐱 Meowixi - UI Helpers (Studio Button)
 # ==========================================
 # دکمه شیشه‌ای «دارک نایت استدیو» زیر تمام پیام‌های ربات
 # Bot.send_message در python-bale-bot فقط‌خواندنی است؛

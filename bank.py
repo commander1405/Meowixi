@@ -1,5 +1,5 @@
 # ==========================================
-# 🏦 MeowBot - Meow Bank System
+# 🏦 Meowixi - Meow Bank System
 # ==========================================
 
 import random

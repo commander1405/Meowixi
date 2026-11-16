@@ -1,5 +1,5 @@
 # ==========================================
-# 🐱 MeowBot - Meow Gym (Global Account)
+# 🐱 Meowixi - Meow Gym (Global Account)
 # ==========================================
 
 from config import MAX_GYM_LEVEL, DATABASE_NAME

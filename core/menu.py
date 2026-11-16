@@ -15,11 +15,12 @@ from database.pets import get_pet
 
 
 WELCOME = (
-    f"🎃 **MeowBot** — شب‌های نفرین‌شده\n"
-    f"━━━━━━━━━━━━━━\n"
-    f"از منوی زیر انتخاب کن.\n"
+    "🐱 **Meowixi**\n"
+    "━━━━━━━━━━━━━━\n"
+    "از منوی زیر انتخاب کن.\n"
     f"نسخه `{BOT_VERSION}`"
 )
+
 
 ABOUT = (
     f"🐱 **{BOT_NAME}**\n"
@@ -37,7 +38,6 @@ GUIDE = (
     "🐈 گربه بساز و مراقبت کن\n"
     "⚔️ نبرد و 🎮 مینی‌گیم از **بازی‌ها**\n"
     "🛍 فروشگاه و 🏦 بانک برای اقتصاد\n"
-    "👻 در ایونت: کدو، باس، جادوگر، گردونه\n"
     "━━━━━━━━━━━━━━"
 )
 
@@ -51,16 +51,6 @@ async def profile_text(user_id, first_name=""):
     if pet and not pet.get("awaiting_name"):
         pet_line = f"{pet.get('pet_name')} (Lv.{pet.get('level',1)})"
     hw_line = ""
-    try:
-        hu = await hwdb.ensure_hw_user(int(user_id))
-        skin = hu.get("active_skin") or ""
-        skin_name = (SKIN_CATALOG.get(skin) or {}).get("name") or "ندارد"
-        hw_line = (
-            f"🎃 کدو: `{hu.get('pumpkins_total', 0)}` | 🍫 شکلات: `{hu.get('chocolate', 0)}`\n"
-            f"⚔️ دمیج باس: `{hu.get('boss_damage', 0)}` | 🎭 اسکین: {skin_name}\n"
-        )
-    except Exception:
-        hw_line = ""
     return (
         f"🐱 **پروفایل {first_name or u.get('first_name') or 'کاربر'}**\n"
         f"━━━━━━━━━━━━━━\n"
@@ -73,7 +63,6 @@ async def profile_text(user_id, first_name=""):
         f"📊 کل میو: `{u.get('total_meows',0)}`\n"
         f"🔥 استریک روزانه: `{u.get('daily_streak',0)}`\n"
         f"🐾 Pet: {pet_line}\n"
-        f"{hw_line}"
         f"━━━━━━━━━━━━━━"
     ), profile_kb()
 
@@ -281,7 +270,7 @@ async def handle_menu_callback(user_id, data, first_name="", chat_id=None, priva
         return await daily_reward(user_id)
     if data == "menu:play":
         return (
-            "🕯 **بازی‌ها و اقتصاد**\n"
+            "🎮 **بازی‌ها و اقتصاد**\n"
             "━━━━━━━━━━━━━━\n"
             "نبرد، مینی‌گیم، بانک، رنکینگ و مأموریت."
         ), play_hub_kb()

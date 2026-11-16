@@ -29,7 +29,7 @@ GUIDES = [
     ("achieve", "🏆 Achievementها رو کامل کن و پاداش بگیر."),
     ("fact", "🧠 Fact جالب: گربه‌ها حدود ۱۶ ساعت در روز می‌خوابن 😴"),
     ("fun1", "😹 پیشی‌ها امروز حوصله‌شون سر رفته... یک میو بزن!"),
-    ("fun2", "✨ می‌دونستی Responseهای MeowBot تکراری نیستن؟"),
+    ("fun2", "✨ می‌دونستی Responseهای Meowixi تکراری نیستن؟"),
     ("gym", "🏋️ باشگاه میویی رو ارتقا بده تا تو Battle قوی‌تر بشی!"),
     ("transfer", "💸 می‌تونی به دوستات Coin انتقال بدی."),
     ("guide_tip", "💡 پیام‌های راهنما حدود هر ۲ تا ۳ ساعت یک‌بار می‌آن (تصادفی)."),
@@ -84,7 +84,7 @@ async def guide_loop(bot):
                     continue
                 try:
                     key, text = await pick_guide(cid)
-                    msg = f"💡 **راهنمای MeowBot**\n\n{text}"
+                    msg = f"💡 **راهنمای Meowixi**\n\n{text}"
                     await bot.send_message(cid, msg)
                     # فاصله بعدی تصادفی ۲–۳ ساعت
                     nxt = random_guide_interval()
